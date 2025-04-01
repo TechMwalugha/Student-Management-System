@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {

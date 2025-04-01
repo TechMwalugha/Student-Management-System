@@ -46,10 +46,16 @@ public class GlobalExceptionsHandler {
             errorDetail.setProperty("description", "The JWT token has expired");
         }
 
+        if(exception instanceof IllegalArgumentException ){
+            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), exception.getMessage());
+            errorDetail.setProperty("description", "JWT String argument cannot be null or empty.");
+        }
+
         if (errorDetail == null) {
             errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
             errorDetail.setProperty("description", "Unknown internal server error.");
         }
+
 
         return errorDetail;
     }

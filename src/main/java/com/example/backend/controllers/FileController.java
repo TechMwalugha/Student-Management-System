@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
@@ -25,14 +28,24 @@ public class FileController {
     private FileUploadService fileUploadService;
 
     @PostMapping("/generate/{count}")
-    public ResponseEntity<String> generateFile(@PathVariable int count) {
+    public ResponseEntity<Map<String, String>> generateFile(@PathVariable int count) {
         try {
             String filePath = studentDataGenerator.generateStudentData(count);
-            return ResponseEntity.ok("File generated successfully " + filePath);
+
+            Map<String, String> response = new HashMap<>();
+
+            response.put("message", "Students generated successfully");
+            response.put("file", filePath);
+            return ResponseEntity.ok(response);
 
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error generating file: " + e.getMessage());
+            Map<String, String> response = new HashMap<>();
+
+            response.put("message", e.getMessage());
+            response.put("file", "none");
+            return ResponseEntity.status(500).body(response);
         }
+
     }
 
     @PostMapping("/process")

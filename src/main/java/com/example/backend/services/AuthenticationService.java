@@ -4,6 +4,8 @@ import com.example.backend.dtos.LoginUserDto;
 import com.example.backend.dtos.RegisterUserDto;
 import com.example.backend.entities.User;
 import com.example.backend.repositories.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,4 +49,21 @@ public class AuthenticationService {
         return userRepository.findByEmail(input.getEmail())
                 .orElseThrow();
     }
+
+    public String extractToken(HttpServletRequest request) {
+        // Extract token from Authorization
+        String jwt = null;
+
+        final String authHeader = request.getHeader("Authorization");
+
+        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        }
+
+        return jwt;
+    }
+
+
+
+
 }
