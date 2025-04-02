@@ -21,9 +21,9 @@ public class UserSessions {
     @Column(nullable = false)
     private boolean isLoggedIn;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String accessToken;
 
-    @Column(nullable = false, unique = false)
+    @Column()
     private String refreshToken;
 }

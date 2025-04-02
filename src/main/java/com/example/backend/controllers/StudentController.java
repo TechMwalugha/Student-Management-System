@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +40,13 @@ public class StudentController {
         if(students.isEmpty()) {
             return ResponseEntity.noContent().build(); // Return 204 No Content if empty
         }
+
+        return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Student>> findAllStudents() {
+        List<Student> students = studentService.findAllStudents();
 
         return ResponseEntity.ok(students);
     }

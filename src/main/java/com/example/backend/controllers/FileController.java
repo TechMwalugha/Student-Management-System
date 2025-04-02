@@ -49,23 +49,24 @@ public class FileController {
     }
 
     @PostMapping("/process")
-    public ResponseEntity<String> processFile() {
+    public ResponseEntity<Map<String, String>> processFile() {
         try {
             String message = fileProcessingService.processExcelToCSV();
-            return ResponseEntity.ok(message);
+            return ResponseEntity.ok(Collections.singletonMap("message", message));
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error processing file: " + e.getMessage());
+            return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
+
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFileToDatabase() {
+    public ResponseEntity<Map<String, String>> uploadFileToDatabase() {
         try {
             String message = fileUploadService.uploadExcelToDatabase();
-            return ResponseEntity.ok(message);
+            return ResponseEntity.ok(Collections.singletonMap("message", message));
 
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error uploading file " + e.getMessage());
+            return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
     }
 

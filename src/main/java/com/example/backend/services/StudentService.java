@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,19 +26,32 @@ public class StudentService {
     private StudentRepository studentRepository;
 
     public Page<Student> searchStudents(Long studentId, String studentClass, Date startDate, Date endDate, Pageable pageable) {
-        if(studentId != null) {
+        if (studentId != null) {
             return studentRepository.findByStudentId(studentId, pageable);
         }
 
-        if(studentClass != null && !studentClass.isEmpty()) {
+        // Combine conditions for class and date of birth
+        if (studentClass != null && !studentClass.isEmpty() && startDate != null && endDate != null) {
+            return studentRepository.findByStudentClassAndDobBetween(studentClass, startDate, endDate, pageable);
+        }
+
+        // Filter by class only
+        if (studentClass != null && !studentClass.isEmpty()) {
             return studentRepository.findByStudentClass(studentClass, pageable);
         }
 
+        // Filter by date of birth range only
         if (startDate != null && endDate != null) {
             return studentRepository.findByDobBetween(startDate, endDate, pageable);
         }
 
         return studentRepository.findAll(pageable);
+    }
+
+
+    public List<Student> findAllStudents () {
+     return studentRepository.findAll();
+
     }
 
     public String softDeleteStudent(Long studentID) {

@@ -120,10 +120,8 @@ public class AuthenticationController {
         }
 
         String token = authHeader.substring(7);
-        userSessionsRepository.findByAccessToken(token).ifPresent(session -> {
-            session.setLoggedIn(false);
-            userSessionsRepository.save(session);
-        });
+
+        authenticationService.logout(token);
 
         return ResponseEntity.ok(Collections.singletonMap("message", "Logged Out successfully"));
     }
@@ -139,13 +137,13 @@ public class AuthenticationController {
             userSessionsRepository.save(session.get());
 
             Map<String, String> response = new HashMap<>();
-            response.put("accessToken", newAccessToken);
+            response.put("newAccessToken", newAccessToken);
             response.put("refreshToken", refreshToken);
 
             return ResponseEntity.ok(response);
         }
 
-        return ResponseEntity.status(403).body(Collections.singletonMap("error", "Invalid refresh token"));
+        return ResponseEntity.status(403).body(Collections.singletonMap("error", "Please Log in."));
     }
 
 

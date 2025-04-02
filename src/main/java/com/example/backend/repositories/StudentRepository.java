@@ -23,4 +23,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     // Filter by date of birth range
     Page<Student> findByDobBetween(Date startDate, Date endDate, Pageable pageable);
+
+    // Combine conditions for class and date of birth
+    Page<Student> findByStudentClassAndDobBetween(String studentClass, Date startDate, Date endDate, Pageable pageable);
 }

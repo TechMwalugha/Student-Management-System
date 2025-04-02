@@ -3,13 +3,18 @@ package com.example.backend.services;
 import com.example.backend.dtos.LoginUserDto;
 import com.example.backend.dtos.RegisterUserDto;
 import com.example.backend.entities.User;
+import com.example.backend.entities.UserSessions;
 import com.example.backend.repositories.UserRepository;
+import com.example.backend.repositories.UserSessionsRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthenticationService {
@@ -18,15 +23,17 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationManager authenticationManager;
+    private final UserSessionsRepository userSessionsRepository;
 
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder
-    ) {
+            PasswordEncoder passwordEncoder,
+            UserSessionsRepository userSessionsRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userSessionsRepository = userSessionsRepository;
     }
 
     public User signup(RegisterUserDto input) {
@@ -63,6 +70,15 @@ public class AuthenticationService {
         return jwt;
     }
 
+    public void logout(String token) {
+        Optional<UserSessions> session = Optional.of(userSessionsRepository.findByAccessToken(token)
+                .orElseThrow());
+
+
+            userSessionsRepository.delete(session.get());
+            SecurityContextHolder.clearContext();
+
+    }
 
 
 
