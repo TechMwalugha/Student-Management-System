@@ -3,6 +3,8 @@ package com.example.backend.controllers;
 import com.example.backend.services.FileProcessingService;
 import com.example.backend.services.FileUploadService;
 import com.example.backend.services.StudentDataGenerator;
+import org.springframework.batch.core.*;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,18 +29,35 @@ public class FileController {
     @Autowired
     private FileUploadService fileUploadService;
 
+    @Autowired
+    private JobLauncher jobLauncher;
+
+    @Autowired
+    private Job generateStudentsJob;
+
+    @Autowired
+    private Job SaveExcelFileAsCSVJob;
+
+    @Autowired
+    private Job UploadToDBJob;
+
     @PostMapping("/generate/{count}")
     public ResponseEntity<Map<String, String>> generateFile(@PathVariable int count) {
         try {
-            String filePath = studentDataGenerator.generateStudentData(count);
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addString("count", String.valueOf(count))
+                    .addLong("time", System.currentTimeMillis())
+                    .toJobParameters();
 
-            Map<String, String> response = new HashMap<>();
+            JobExecution jobExecution = jobLauncher.run(generateStudentsJob, jobParameters);
 
-            response.put("message", "Students generated successfully");
-            response.put("file", filePath);
-            return ResponseEntity.ok(response);
+            if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
+                return ResponseEntity.ok(Collections.singletonMap("message", count + " students generated successfully"));
+            } else {
+                return ResponseEntity.status(500).body(Collections.singletonMap("message", "Job failed with exception: " + jobExecution.getStatus()));
+            }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
 
             response.put("message", e.getMessage());
@@ -51,9 +70,19 @@ public class FileController {
     @PostMapping("/process")
     public ResponseEntity<Map<String, String>> processFile() {
         try {
-            String message = fileProcessingService.processExcelToCSV();
-            return ResponseEntity.ok(Collections.singletonMap("message", message));
-        } catch (IOException e) {
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("time", System.currentTimeMillis())
+                    .toJobParameters();
+
+            JobExecution jobExecution = jobLauncher.run(SaveExcelFileAsCSVJob, jobParameters);
+
+            if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
+                return ResponseEntity.ok(Collections.singletonMap("message", "Excel file processed and saved as CSV file successfully"));
+            } else {
+                return ResponseEntity.status(500).body(Collections.singletonMap("message", "Job failed with status: " + jobExecution.getStatus()));
+            }
+
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
 
@@ -62,10 +91,19 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFileToDatabase() {
         try {
-            String message = fileUploadService.uploadExcelToDatabase();
-            return ResponseEntity.ok(Collections.singletonMap("message", message));
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("time", System.currentTimeMillis())
+                    .toJobParameters();
 
-        } catch (IOException e) {
+           JobExecution jobExecution = jobLauncher.run(UploadToDBJob, jobParameters);
+
+           if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
+               return ResponseEntity.ok(Collections.singletonMap("message", "Students uploaded to DB successfully"));
+           } else {
+               return ResponseEntity.status(500).body(Collections.singletonMap("message", "Job failed with status: " + jobExecution.getStatus()));
+           }
+
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
     }

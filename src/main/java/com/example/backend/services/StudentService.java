@@ -63,7 +63,7 @@ public class StudentService {
             student.setStatus(0); // Set status to 0 inactive
             studentRepository.save(student);
 
-            return "Student with student ID: " + student.getFirstName() + " soft deleted";
+            return "Student with student Name: " + student.getFirstName() + " soft deleted";
         }
 
         return "Student with student ID: " + studentID + " not found";

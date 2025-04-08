@@ -13,9 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
@@ -73,14 +71,14 @@ public class StudentController {
     }
 
     @DeleteMapping("/{studentID}")
-    public ResponseEntity<String> softDeleteStudent(@PathVariable Long studentID) {
+    public ResponseEntity<Map<String, String>> softDeleteStudent(@PathVariable Long studentID) {
         String response = studentService.softDeleteStudent(studentID);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Collections.singletonMap("message", response));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateStudent (
+    public ResponseEntity<Map<String, String>> updateStudent (
             @PathVariable Long id,
             @RequestParam("firstName") String firstName,
             @RequestParam("lastName") String lastName,
@@ -100,10 +98,10 @@ public class StudentController {
             updatedStudent.setStatus(status);
 
             String response = studentService.updateStudent(id, updatedStudent, photo);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Collections.singletonMap("message", response));
 
         } catch(IOException e) {
-            return ResponseEntity.status(500).body("Error updating student: " + e.getMessage());
+            return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
     }
 

@@ -14,6 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Optional;
 
 @Service
@@ -68,6 +70,13 @@ public class AuthenticationService {
         }
 
         return jwt;
+    }
+
+    public String generateRandomString(int length) {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[length]; // 32 bytes
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes).substring(0, length);
     }
 
     public void logout(String token) {

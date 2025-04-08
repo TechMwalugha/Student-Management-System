@@ -1,70 +1,102 @@
 package com.example.backend.services;
 
+import com.github.pjfanning.xlsx.StreamingReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 @Service
 public class FileProcessingService {
+
     private static final String EXCEL_FILE_PATH = "C:/var/log/applications/API/dataprocessing/students.xlsx";
     private static final String CSV_FILE_PATH = "C:/var/log/applications/API/dataprocessing/students.csv";
 
     public String processExcelToCSV() throws IOException {
-        File excelFile = new File(EXCEL_FILE_PATH);
-        if(!excelFile.exists()) {
-            throw new FileNotFoundException("Excel file not found at path: " + EXCEL_FILE_PATH);
+        long start = System.nanoTime();
+
+        // Initialize file input and output
+        long initStart = System.nanoTime();
+        try (
+                InputStream is = new FileInputStream(EXCEL_FILE_PATH);
+                Workbook workbook = StreamingReader.builder()
+                        .rowCacheSize(100)
+                        .bufferSize(4096)
+                        .open(is);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE_PATH), 16 * 1024); // 16KB buffer
+                CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
+                        "studentId", "firstName", "lastName", "DOB", "class", "score", "status", "photoPath"
+                ))
+        ) {
+            long initEnd = System.nanoTime();
+            System.out.printf("🕒 Initialization Time: %.2f minutes%n", (initEnd - initStart) / 1_000_000_000.0 / 60);
+
+            // Read the sheet and process rows
+            long readStart = System.nanoTime();
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> iterator = sheet.iterator();
+
+            // Skip header row
+            if (iterator.hasNext()) iterator.next();
+
+            while (iterator.hasNext()) {
+                Row row = iterator.next();
+                String[] data = new String[8];
+
+                for (int i = 0; i < 8; i++) {
+                    Cell cell = row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    data[i] = getCellValue(cell);
+                }
+
+                try {
+                    int studentId = (int) Double.parseDouble(data[0]);
+                    String firstName = data[1];
+                    String lastName = data[2];
+                    String dob = data[3];
+                    String studentClass = data[4];
+                    double rawScore = Double.parseDouble(data[5]);
+                    int score = (int) rawScore + 10;
+                    int status = (int) Double.parseDouble(data[6]);
+                    String photoPath = data[7];
+
+                    csvPrinter.printRecord(studentId, firstName, lastName, dob, studentClass, score, status, photoPath);
+                } catch (Exception e) {
+                    System.err.println("Skipped invalid row: " + String.join(",", data) + " - " + e.getMessage());
+                }
+            }
+            long readEnd = System.nanoTime();
+            System.out.printf("🕒 Read and Process Time: %.2f minutes%n", (readEnd - readStart) / 1_000_000_000.0 / 60);
+
+            // Flush CSV printer
+            long flushStart = System.nanoTime();
+            csvPrinter.flush(); // flush once at the end
+            long flushEnd = System.nanoTime();
+            System.out.printf("🕒 CSV Flush Time: %.2f minutes%n", (flushEnd - flushStart) / 1_000_000_000.0 / 60);
         }
 
-        //Read the Excel File
-        FileInputStream fis = new FileInputStream(excelFile);
-        Workbook workbook = new XSSFWorkbook(fis);
-        Sheet sheet = workbook.getSheetAt(0);
-
-        // Prepare CSV file for writing
-        BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE_PATH));
-        CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
-                "studentId", "firstName", "lastName", "DOB", "class", "score", "status", "photoPath"
-        ));
-
-        Iterator<Row> rowIterator = sheet.iterator();
-        rowIterator.next(); //Skip header row
-
-        List<String[]> dataList = new ArrayList<>();
-
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-
-            int studentId = (int) row.getCell(0).getNumericCellValue();
-            String firstName = row.getCell(1).getStringCellValue();
-            String lastName = row.getCell(2).getStringCellValue();
-            String dob = row.getCell(3).getStringCellValue();
-            String studentClass = row.getCell(4).getStringCellValue();
-            int score = (int) row.getCell(5).getNumericCellValue() + 10; // Add 10 to score
-            int status = (int) row.getCell(6).getNumericCellValue();
-            String photoPath = row.getCell(7).getStringCellValue();
-
-            // Add processed data to CSV
-            dataList.add(new String[]{String.valueOf(studentId), firstName, lastName, dob, studentClass,
-                    String.valueOf(score), String.valueOf(status), photoPath});
-        }
-
-        for(String[] data : dataList) {
-            csvPrinter.printRecord((Object[]) data);
-        }
-
-        workbook.close();
-        csvPrinter.close();
-        writer.close();
-
+        long end = System.nanoTime();
+        System.out.printf("✅ Total CSV Generation Time: %.2f minutes%n", (end - start) / 1_000_000_000.0 / 60);
         return "CSV file successfully created at " + CSV_FILE_PATH;
+    }
+
+    private String getCellValue(Cell cell) {
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                return DateUtil.isCellDateFormatted(cell)
+                        ? cell.getDateCellValue().toString()
+                        : String.valueOf(cell.getNumericCellValue());
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            case BLANK:
+            default:
+                return "";
+        }
     }
 }

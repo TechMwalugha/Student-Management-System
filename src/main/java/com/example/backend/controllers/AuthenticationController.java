@@ -52,7 +52,7 @@ public class AuthenticationController {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        String refreshToken = jwtService.generateRefreshToken(authenticatedUser);
+        String refreshToken = authenticationService.generateRandomString(32);
 
         // Check if an active session already exists
         Optional<UserSessions> existingSession = userSessionsRepository.findByUser(authenticatedUser);

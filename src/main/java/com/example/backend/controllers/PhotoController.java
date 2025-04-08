@@ -13,7 +13,7 @@ import java.nio.file.Paths;
 
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
-@RequestMapping("/photos")
+@RequestMapping("/api/photos")
 public class PhotoController {
 
     private static final String PHOTO_DIRECTORY = "C:/var/log/applications/API/StudentPhotos/";
