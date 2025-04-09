@@ -54,6 +54,11 @@ public class StudentService {
 
     }
 
+    // Method to fetch the count of all students
+    public long countAllStudents() {
+        return studentRepository.count(); // This directly counts the records
+    }
+
     public String softDeleteStudent(Long studentID) {
         Optional studentOptional = studentRepository.findById(studentID);
 

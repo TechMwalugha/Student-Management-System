@@ -66,7 +66,7 @@ public class FileUploadService {
                     batch.add(student);
 
                     if (batch.size() >= BATCH_SIZE) {
-                        System.out.print(batch);
+
                         studentRepository.saveAll(batch);
                         totalInserted += batch.size();
                         batch.clear();

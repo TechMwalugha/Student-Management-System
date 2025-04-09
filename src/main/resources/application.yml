@@ -5,7 +5,8 @@ server:
 spring:
   datasource:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://manusqldatabase.database.windows.net:1433;database=studentmanagementsystem;encrypt=true;trustServerCertificate=true
+#    url: jdbc:sqlserver://manusqldatabase.database.windows.net:1433;database=studentmanagementsystem;encrypt=true;trustServerCertificate=true
+    url: jdbc:sqlserver://localhost:1433;databaseName=studentmanagementsystem;encrypt=true;trustServerCertificate=true
     username: manu
     password: 1@Werugha
   jpa:

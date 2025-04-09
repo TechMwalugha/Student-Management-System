@@ -83,6 +83,7 @@ public class FileController {
             }
 
         } catch (Exception e) {
+
             return ResponseEntity.status(500).body(Collections.singletonMap("message", e.getMessage()));
         }
 

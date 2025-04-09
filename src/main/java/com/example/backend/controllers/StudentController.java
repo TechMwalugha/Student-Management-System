@@ -42,11 +42,11 @@ public class StudentController {
         return ResponseEntity.ok(students);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Student>> findAllStudents() {
-        List<Student> students = studentService.findAllStudents();
+    @GetMapping("/student-count")
+    public ResponseEntity<Long> findNoOfStudents() {
+        Long studentCount = studentService.countAllStudents();
 
-        return ResponseEntity.ok(students);
+        return ResponseEntity.ok(studentCount);
     }
 
     @GetMapping("/export")
