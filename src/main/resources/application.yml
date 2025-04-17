@@ -2,6 +2,7 @@ server:
   error:
     include-message: always
     include-binding-errors: always
+  port: 8089
 spring:
   datasource:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
@@ -21,4 +22,6 @@ security:
     secret-key: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
     expiration-time: 900000  # 1 hour in milliseconds
     refresh-expiration-time: 7200000
+
+
 

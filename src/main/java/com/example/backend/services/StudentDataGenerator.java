@@ -71,7 +71,7 @@ public class StudentDataGenerator {
                 row.createCell(7).setCellValue(""); // photoPath
 
                 if (i % 20000 == 0) {
-                    sheet.flushRows(); // Flush memory to disk every 10k rows
+                    sheet.flushRows(); // Flush memory to disk every 20k rows
                 }
             }
             long dataEnd = System.nanoTime();
